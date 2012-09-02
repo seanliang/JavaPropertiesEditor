@@ -1,0 +1,7 @@
+JavaPropertiesEditor
+==================
+With this plugin, you can view and edit the java properties file in your native language.
+
+Contact me
+------------------
+Please send me your questions or suggestions: sunlxy (at) yahoo.com or http://weibo.com/seanliang
