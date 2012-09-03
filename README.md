@@ -2,6 +2,8 @@ Description
 ------------------
 With this plugin, you can view and edit the java properties file in your native language.
 
+![JavaPropertiesEditor](http://dl.dropbox.com/u/31937639/JavaPropertiesEditor/properties.png)
+
 Installation
 ------------------
 Using [Package Control](http://wbond.net/sublime_packages/package_control) to find, install and upgrade *JavaPropertiesEditor* is the recommended method to install this plug-in.
