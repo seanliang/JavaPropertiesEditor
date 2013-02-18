@@ -1,0 +1,4 @@
+JavaPropertiesEditor 1.1.0 Changelog
+
+New Features
+- Forward compatible with Sublime Text 3 (3012 and above)

@@ -3,8 +3,14 @@
 import sublime, sublime_plugin
 import os
 import re
+import sys
 
-NONE_COMMAND = (None, None, 0)
+if sys.version_info < (3, 0):
+	NONE_COMMAND = (None, None, 0)
+	MAP = map(unichr, range(0x7f))
+else:
+	NONE_COMMAND = ('', None, 0)
+	MAP = list(map(chr, list(range(0x7f))))
 
 class UpperTable(dict):
 	def __missing__(self, key):
@@ -14,10 +20,25 @@ class LowerTable(dict):
 	def __missing__(self, key):
 		return u'\\u%04x' % key
 
-MAP = map(unichr, range(0x7f))
 UPPER_TABLE = UpperTable(enumerate(MAP))
 LOWER_TABLE = LowerTable(enumerate(MAP))
-IS_UPPER = re.compile('\\u([A-F][A-Z0-9]{3,3}|[0-9][A-F][A-F0-9]{2,2}|[0-9]{2,2}[A-F][A-F0-9]|[0-9]{3,3}[A-F])')
+IS_UPPER = re.compile('\\\\u([A-F][A-Z0-9]{3,3}|[0-9][A-F][A-F0-9]{2,2}|[0-9]{2,2}[A-F][A-F0-9]|[0-9]{3,3}[A-F])')
+
+class JavaPropertiesConvertCommand(sublime_plugin.TextCommand):
+	def run(self, edit, contents):
+		view = self.view
+		sel = view.sel()
+		rs = [x for x in sel]
+		vp = view.viewport_position()
+		view.set_viewport_position(tuple([0, 0]))
+		regions = sublime.Region(0, view.size())
+		view.replace(edit, regions, contents)
+		sel.clear()
+		for x in rs:
+			sel.add(sublime.Region(x.a, x.b))
+		view.set_viewport_position(vp)
+		view.set_scratch(True)
+		view.settings().set('set_scratch', True)
 
 class JavaPropertiesEditorListener(sublime_plugin.EventListener):
 	def check_properties(self, view):
@@ -27,20 +48,8 @@ class JavaPropertiesEditorListener(sublime_plugin.EventListener):
 			view.settings().set('is_properties', True)
 		return result
 
-	def replace_content(self, view, regions, contents):
-		sel = view.sel()
-		rs = [x for x in sel]
-		vp = view.viewport_position()
-		view.set_viewport_position(tuple([0, 0]))
-		edit = view.begin_edit()
-		view.replace(edit, regions, contents)
-		view.end_edit(edit)
-		sel.clear()
-		for x in rs:
-			sel.add(sublime.Region(x.a, x.b))
-		view.set_viewport_position(vp)
-		view.set_scratch(True)
-		view.settings().set('set_scratch', True)
+	def replace_content(self, view, contents):
+		view.run_command('java_properties_convert', {'contents': contents})
 
 	def on_load(self, view):
 		if not self.check_properties(view):
@@ -52,7 +61,7 @@ class JavaPropertiesEditorListener(sublime_plugin.EventListener):
 			return
 		if IS_UPPER.search(orignal_contents) == None:
 			view.settings().set('use_lower', True)
-		self.replace_content(view, regions, contents)
+		self.replace_content(view, contents)
 
 	def on_modified(self, view):
 		if not view.settings().get('is_properties'):
@@ -82,7 +91,7 @@ class JavaPropertiesEditorListener(sublime_plugin.EventListener):
 		if contents == orignal_contents:
 			return
 		self.contents = contents
-		self.replace_content(view, regions, orignal_contents)
+		self.replace_content(view, orignal_contents)
 
 	def on_post_save(self, view):
 		if not view.settings().get('is_properties'):
@@ -91,5 +100,4 @@ class JavaPropertiesEditorListener(sublime_plugin.EventListener):
 			return
 		contents = self.contents
 		del self.contents
-		regions = sublime.Region(0, view.size())
-		self.replace_content(view, regions, contents)
+		self.replace_content(view, contents)
