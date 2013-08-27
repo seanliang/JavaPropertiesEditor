@@ -56,7 +56,7 @@ class JavaPropertiesEditorListener(sublime_plugin.EventListener):
 			return
 		regions = sublime.Region(0, view.size())
 		orignal_contents = view.substr(regions)
-		contents = orignal_contents.encode('iso-8859-1', 'replace').decode('unicode_escape')
+		contents = orignal_contents.encode('iso-8859-1', 'replace').decode('raw_unicode_escape')
 		if contents == orignal_contents:
 			return
 		if IS_UPPER.search(orignal_contents) == None:
