@@ -24,6 +24,9 @@ UPPER_TABLE = UpperTable(enumerate(MAP))
 LOWER_TABLE = LowerTable(enumerate(MAP))
 IS_UPPER = re.compile('\\\\u([A-F][A-Z0-9]{3,3}|[0-9][A-F][A-F0-9]{2,2}|[0-9]{2,2}[A-F][A-F0-9]|[0-9]{3,3}[A-F])')
 
+UNIC = '\\u000'
+CTRL = '>LRTC<'
+
 class JavaPropertiesConvertCommand(sublime_plugin.TextCommand):
 	def run(self, edit, contents):
 		view = self.view
@@ -56,7 +59,7 @@ class JavaPropertiesEditorListener(sublime_plugin.EventListener):
 			return
 		regions = sublime.Region(0, view.size())
 		orignal_contents = view.substr(regions)
-		contents = orignal_contents.encode('iso-8859-1', 'replace').decode('raw_unicode_escape')
+		contents = orignal_contents.replace(UNIC, CTRL).encode('iso-8859-1', 'replace').decode('raw_unicode_escape').replace(CTRL, UNIC)
 		if contents == orignal_contents:
 			return
 		if IS_UPPER.search(orignal_contents) == None:
